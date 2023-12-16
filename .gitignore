@@ -2,7 +2,7 @@
 
 # Ignore images file
 images/
-# docs/
+docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
