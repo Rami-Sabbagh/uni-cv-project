@@ -1,9 +1,5 @@
 # ---> Python
 
-# Ignore images file
-images/
-docs/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

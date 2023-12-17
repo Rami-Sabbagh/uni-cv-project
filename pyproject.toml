@@ -1,19 +1,29 @@
 [project]
 name = "uni-cv-project"
 version = "0.1.0"
-description = "Default template for PDM package"
+description = "A Puzzle (the classical board game) Solver using OpenCV."
 authors = [
     {name = "Rami Sabbagh", email = "rami.sab07@gmail.com"},
+    {name = "Abd Al-mjeed Al-Shami", email = "ab.2267084@gmail.com"},
+    {name = "Alaa Khaddam Al-Jame", email = "khaddamaljamehalaa@gmail.com"},
+    {name = "Ahmad Rahima", email = "ahmadrahimaim@gmail.com" },
 ]
 dependencies = [
     "opencv-python>=4.8.1.78",
     "numpy>=1.26.2",
     "matplotlib>=3.8.2",
+    "streamlit>=1.29.0",
+    "pandas>=2.1.4",
+    "jupyterlab>=4.0.9",
 ]
-requires-python = "==3.11.*"
+requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
 
 
 [tool.pdm]
 package-type = "application"
+
+[tool.pdm.scripts]
+main = "py ./src/uni_cv_project"
+lab = "jupyter lab --notebook-dir notebooks"
