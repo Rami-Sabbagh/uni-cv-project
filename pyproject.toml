@@ -1,0 +1,19 @@
+[project]
+name = "uni-cv-project"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Rami Sabbagh", email = "rami.sab07@gmail.com"},
+]
+dependencies = [
+    "opencv-python>=4.8.1.78",
+    "numpy>=1.26.2",
+    "matplotlib>=3.8.2",
+]
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+package-type = "application"
