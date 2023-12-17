@@ -3,10 +3,10 @@ name = "uni-cv-project"
 version = "0.1.0"
 description = "A Puzzle (the classical board game) Solver using OpenCV."
 authors = [
-    {name = "Rami Sabbagh", email = "rami.sab07@gmail.com"},
-    {name = "Abd Al-mjeed Al-Shami", email = "ab.2267084@gmail.com"},
-    {name = "Alaa Khaddam Al-Jame", email = "khaddamaljamehalaa@gmail.com"},
-    {name = "Ahmad Rahima", email = "ahmadrahimaim@gmail.com" },
+    { name = "Rami Sabbagh", email = "rami.sab07@gmail.com" },
+    { name = "Abd Al-mjeed Al-Shami", email = "ab.2267084@gmail.com" },
+    { name = "Alaa Khaddam Al-Jame", email = "khaddamaljamehalaa@gmail.com" },
+    { name = "Ahmad Rahima", email = "ahmadrahimaim@gmail.com" },
 ]
 dependencies = [
     "opencv-python>=4.8.1.78",
@@ -18,12 +18,12 @@ dependencies = [
 ]
 requires-python = ">=3.11"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 
 [tool.pdm]
 package-type = "application"
 
 [tool.pdm.scripts]
-main = "py ./src/uni_cv_project"
+main = "streamlit run ./src/uni_cv_project/__main__.py"
 lab = "jupyter lab --notebook-dir notebooks"
