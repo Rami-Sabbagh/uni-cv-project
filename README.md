@@ -4,7 +4,7 @@ A Puzzle (the classical board game) Solver using OpenCV.
 
 ## Installation
 
-1. Have Python 2.11 or later installed on your system.
+1. Have Python 3.11 or later installed on your system.
 2. Make sure you have the latest version of `pip` install.
 
 ```sh
