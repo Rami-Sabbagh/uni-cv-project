@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:0d06cac35bfdd979e6b88832956c22636cbecfbf3c113090992284456d1bc8a7"
+content_hash = "sha256:941d7c6479c1b786fc665313af5a06cc51eaec04d810e58edc1277694e29147b"
 
 [[package]]
 name = "altair"
@@ -1128,6 +1128,7 @@ summary = "Powerful data structures for data analysis, time series, and statisti
 groups = ["default"]
 dependencies = [
     "numpy<2,>=1.23.2; python_version == \"3.11\"",
+    "numpy<2,>=1.26.0; python_version >= \"3.12\"",
     "python-dateutil>=2.8.2",
     "pytz>=2020.1",
     "tzdata>=2022.1",
