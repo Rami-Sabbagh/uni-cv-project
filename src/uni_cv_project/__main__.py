@@ -183,7 +183,7 @@ def encode_image(img: NDArray) -> bytes:
 col3.download_button(
     label='💾 Save Image',
     data=encode_image(image_shuffled),
-    file_name=f'shuffled_{seed}_{os.path.splitext(image_name)[0]}.jpg',
+    file_name=f'{os.path.splitext(image_name)[0]}_shuffled_{seed}.jpg',
     mime='image/jpg',
 )
 
