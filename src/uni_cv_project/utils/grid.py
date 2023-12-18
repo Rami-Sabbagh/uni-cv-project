@@ -53,3 +53,143 @@ class Grid:
     @st.cache_data(show_spinner=False)
     def merge(cells: NDArray) -> NDArray:
         return np.concatenate(list(map(lambda x: np.concatenate(x, 1), cells)))
+
+
+class GridIdentifier:
+
+
+    @staticmethod
+    def identify_grid_shape(
+        image: NDArray, *,
+        std_threshold: int = 4,
+        widest_gap: int = 50,
+    ) -> tuple[int, int]:
+        
+        edges_signals = GridIdentifier.derive_edges_signal(image)
+        cleaned_signals = [
+            GridIdentifier.cleanup_edge_signal(
+                signal, std_threshold=std_threshold,
+                widest_gap=widest_gap,
+            )
+            for signal in edges_signals
+        ]
+
+        length_encoding = [
+            GridIdentifier.__length_encode(signal > .5)
+            for signal in cleaned_signals
+        ]
+
+        cell_shape = [
+            GridIdentifier.__detect_edge_length(encoding, widest_gap)
+            for encoding in length_encoding
+        ]
+
+        grid_shape = [
+            int(img_length / cell_length + .5)
+            for img_length, cell_length in zip(image.shape, cell_shape)
+        ]
+
+        return tuple(grid_shape)
+
+    
+    @staticmethod
+    def derive_edges_signal(image: NDArray) -> tuple[NDArray, NDArray]:
+        """
+        Derive the average sobel of the image,
+        first vertically then horizontally.
+        """
+        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        
+        sobel = [
+            cv.Sobel(gray, cv.CV_32F, dx, dy)
+            for dx, dy in [(0, 1), (1, 0)]
+        ]
+
+        average = [
+            np.average(np.abs(item), axis=axis)
+            for item, axis in zip(sobel, [1, 0])
+        ]
+
+        diff = [ np.diff(item) for item in average ]
+
+        return tuple(diff)
+
+
+    @staticmethod
+    def cleanup_edge_signal(
+        signal: NDArray, *,
+        std_threshold: int,
+        widest_gap: int,
+    ) -> NDArray:
+        
+        signal = cv.threshold(
+            signal,
+            GridIdentifier.__standard_deviation(signal) * std_threshold,
+            1, cv.THRESH_BINARY,
+        )[1]
+
+        signal = cv.morphologyEx(
+            signal, cv.MORPH_CLOSE,
+            np.ones(widest_gap),
+        )
+
+        return signal
+
+
+    @staticmethod
+    def __length_encode(seq: Sequence[bool]) -> Sequence[tuple[bool, int]]:
+        last, counter = next(seq.flat), 1
+
+        for element in seq.flat:
+            if last == element:
+                counter += 1
+            else:
+                yield last, counter
+                last, counter = element, 1
+        
+        yield last, counter
+
+
+    @staticmethod    
+    def __detect_edge_length(
+        seq: Sequence[tuple[bool, int]],
+        widest_gap: int,
+    ) -> int:
+        
+        last_padding = 0
+        last_length = -1
+        min_length = -1
+
+        for value, length in seq:
+            if value and last_length != -1:
+                padding = length // 2
+                edge_length = last_length + last_padding + padding
+                if edge_length < min_length and edge_length > widest_gap:
+                    min_length = edge_length
+
+                last_padding = length - padding
+                last_length = -1
+
+            elif value:
+                last_padding = length
+
+            else:
+                last_length = length
+
+        if last_length != -1:
+            edge_length = last_padding + last_length
+            
+            if edge_length < min_length and edge_length > widest_gap:
+                min_length = edge_length
+        
+        return edge_length
+
+
+    @staticmethod
+    def __standard_deviation(y: NDArray) -> float:
+        mean = np.average(y)
+        variance = np.average(np.square(y - mean))
+        return np.sqrt(variance)
+    
+
+

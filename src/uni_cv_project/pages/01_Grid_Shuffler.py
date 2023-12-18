@@ -17,7 +17,7 @@ rng = default_rng()
 
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
 """
-# Grid Shuffler
+# 🔀 Grid Shuffler
 
 This tool takes a rectangular image,
 divides it into a grid of cells
