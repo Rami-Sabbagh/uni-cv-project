@@ -25,5 +25,5 @@ license = { text = "MIT" }
 package-type = "application"
 
 [tool.pdm.scripts]
-main = "streamlit run ./src/uni_cv_project/__main__.py"
+main = "streamlit run ./src/uni_cv_project/Home.py"
 lab = "jupyter lab --notebook-dir notebooks"

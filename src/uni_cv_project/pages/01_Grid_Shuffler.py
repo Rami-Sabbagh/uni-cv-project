@@ -2,20 +2,9 @@ import os
 
 import cv2 as cv
 import numpy as np
-import pandas as pd
 import streamlit as st
 
-import matplotlib.pyplot as plt
-import matplotlib.collections as mc
-import matplotlib.patches as mp
-
-from copy import deepcopy
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from functools import total_ordering
 from numpy.random import default_rng
-from queue import Queue, PriorityQueue
 
 from utils.grid import Grid
 from utils.image import Image
@@ -23,19 +12,20 @@ from utils.image import Image
 from typing import *
 from numpy.typing import NDArray
 
-st.set_page_config('Puzzle Solver', '🧩')
+st.set_page_config('Grid Shuffler', '🔀')
 rng = default_rng()
 
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
-'''
-# Puzzle Solver
+"""
+# Grid Shuffler
 
-A university project built using [OpenCV], [Python] and [Streamlit]!
+This tool takes a rectangular image,
+divides it into a grid of cells
+and shuffles them.
 
-[OpenCV]: https://opencv.org/
-[Python]: https://python.org/
-[Streamlit]: https://streamlit.io/
-'''
+To get started please select the target image you wish
+and then configure how you wish the operation done.
+"""
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
 
 @st.cache_resource(show_spinner=False)
@@ -83,3 +73,4 @@ col3.download_button(
     file_name=f'{os.path.splitext(image_name)[0]}_{grid_size[0]:02d}x{grid_size[1]:02d}_shuffled_{seed}.jpg',
     mime='image/jpg',
 )
+
