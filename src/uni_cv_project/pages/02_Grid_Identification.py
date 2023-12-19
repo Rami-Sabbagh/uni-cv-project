@@ -48,8 +48,16 @@ with st.spinner('Detecting shape...'):
                     std_threshold=std_threshold, widest_gap=widest_gap)
     
     st.write(pd.DataFrame({
-        'Rows': { image_name: grid_shape[0] },
-        'Columns': { image_name: grid_shape[1] },
+        'Rows': {
+            'Grid': grid_shape[0],
+            'Cell': image.shape[0] // grid_shape[0],
+            'Image': image.shape[0],
+        },
+        'Columns': {
+            'Grid': grid_shape[1],
+            'Cell': image.shape[1] // grid_shape[1],
+            'Image': image.shape[1],
+        },
     }))
 
 
