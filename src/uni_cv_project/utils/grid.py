@@ -53,6 +53,20 @@ class Grid:
     @st.cache_data(show_spinner=False)
     def merge(cells: NDArray) -> NDArray:
         return np.concatenate(list(map(lambda x: np.concatenate(x, 1), cells)))
+    
+
+    @staticmethod
+    def pyramid_down(cells: NDArray, depth=1) -> NDArray:
+        result = np.empty_like(cells)
+    
+        for i in range(cells.shape[0]):
+            for j in range(cells.shape[1]):
+                cell = cells[i, j]
+                for _ in range(depth): cell = cv.pyrDown(cell)
+                result[i, j] = cell
+
+        return result
+
 
 
 class GridIdentifier:
@@ -85,7 +99,7 @@ class GridIdentifier:
         ]
 
         grid_shape = [
-            int(img_length / cell_length + .5)
+            np.max([int(img_length / cell_length + .5), 1])
             for img_length, cell_length in zip(image.shape, cell_shape)
         ]
 
