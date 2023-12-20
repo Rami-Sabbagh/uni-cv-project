@@ -122,13 +122,6 @@ with st.status('Solving Puzzle...'):
 
 st.image(image_solved, f'Generated Solution', channels='BGR')
 
-st.download_button(
-    label='💾 Save Solution',
-    data=Image.encode(image_solved),
-    file_name=f'{os.path.splitext(image_name)[0]}_solved.jpg',
-    mime='image/jpg',
-)
-
 with st.expander('Statistics'):
     f"""
     |             Metric | Value                            |
@@ -138,3 +131,10 @@ with st.expander('Statistics'):
     | Solution Coherence | `{solution.state.coherence:.2f}` |
     | Search time        | `{end - start :.2f}ms`           |
     """
+
+st.download_button(
+    label='💾 Save Solution',
+    data=Image.encode(image_solved),
+    file_name=f'{os.path.splitext(image_name)[0]}_solved.jpg',
+    mime='image/jpg',
+)
