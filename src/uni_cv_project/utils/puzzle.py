@@ -8,30 +8,21 @@ from numpy.typing import NDArray
 
 
 class Puzzle:
-    shape: tuple[int, int]
-    rows: int
-    columns: int
 
-    cells: list[NDArray]
-    indices: list[tuple[int, int]]
-
-    __max_cell_id: int
-
-    # precomputed coherence scores between cells at different edges. 
-    __coherence: NDArray
 
     def __init__(self, cells: NDArray):
-        self.shape = cells.shape[:2]
+        self.shape: tuple[int, int] = cells.shape[:2]
         self.rows, self.columns = self.shape
 
-        self.cells = list(cells.flat)
-        self.__max_cell_id = len(self.cells) - 1
-        self.indices = list(map(tuple, np.stack(np.indices(cells.shape), -1).reshape(-1, 2)))
-        self.__coherence = Puzzle.__compute_coherence(self.cells)
+        self.cells: list[NDArray] = list(cells.flat)
+        self.indices: list[tuple[int, int]] = list(map(tuple, np.stack(np.indices(cells.shape), -1).reshape(-1, 2)))
+
+        # precomputed coherence scores between cells at different edges. 
+        self.coherence_matrices: NDArray = Puzzle.__compute_coherence(self.cells)
     
 
     def get_coherence(self, cell_a: NDArray, cell_b: NDArray, dir: Direction) -> NDArray:
-        return self.__coherence[cell_a][cell_b][dir.value[0]]
+        return self.coherence_matrices[cell_a][cell_b][dir.value[0]]
 
 
     @staticmethod

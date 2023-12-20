@@ -19,6 +19,7 @@ from numpy.typing import NDArray
 st.set_page_config('Grid ISA Solver', '🔍')
 rng = default_rng()
 
+
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
 """
 # 🔍 Grid ISA Solver
@@ -90,7 +91,6 @@ if shuffle_enabled:
 
 col1, _ = st.columns([1, 3])
 states_limit = col1.number_input('States Limit', 500, value=10_000)
-
 
 
 with st.status('Solving Puzzle...'):

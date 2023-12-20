@@ -15,24 +15,28 @@ from numpy.typing import NDArray
 
 @total_ordering
 class State:
-    puzzle: Puzzle
 
-    shape: tuple[int, int]
-    rows: int
-    columns: int
+    
+    def __init__(self) -> None:
+        self.puzzle: Puzzle
 
-    min_row: int
-    max_row: int
+        self.shape: tuple[int, int]
+        self.rows: int
+        self.columns: int
 
-    min_column: int
-    max_column: int
+        self.min_row: int
+        self.max_row: int
 
-    cells: dict[int, dict[int, int]]
-    available_cells: set[int]
-    free_neighbors: set[tuple[int, int]]
+        self.min_column: int
+        self.max_column: int
 
-    coherence: float
-    __hash: int
+        self.cells: dict[int, dict[int, int]]
+        self.available_cells: set[int]
+        self.free_neighbors: set[tuple[int, int]]
+
+        self.coherence: float
+        self.__hash: int
+
 
     @property
     def actions(self) -> Sequence[tuple[tuple[int, int], int]]: # (coords, cell_id)
@@ -41,9 +45,9 @@ class State:
                 yield neighbor, cell_id
 
 
-    @staticmethod
-    def create_initial_state(puzzle: Puzzle) -> Self:
-        result = State()
+    @classmethod
+    def create_initial_state(self, puzzle: Puzzle) -> Self:
+        result = self()
         result.puzzle = puzzle
 
         result.shape = (0, 0)

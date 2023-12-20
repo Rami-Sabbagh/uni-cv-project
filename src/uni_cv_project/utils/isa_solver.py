@@ -17,7 +17,7 @@ class Solution():
 
 class ISAPuzzleSolver(Iterator[Solution]):
 
-    
+
     def __init__(
         self, puzzle: Puzzle, *,
         states_limit: int = 10_000,
@@ -66,5 +66,5 @@ class ISAPuzzleSolver(Iterator[Solution]):
 
     @staticmethod
     def coherence_heuristic(state: State) -> tuple:
-        return (state.coherence + len(state.available_cells) * 1000,)
+        return (len(state.available_cells), state.coherence)
     
