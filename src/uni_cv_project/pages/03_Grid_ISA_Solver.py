@@ -93,7 +93,7 @@ if shuffle_enabled:
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
 
 col1, col2, col3, _ = st.columns([1, 1, 1, 2])
-states_limit = col1.number_input('States Limit', 500, value=10_000)
+states_limit = col1.number_input('States Limit', 1, value=10_000)
 best_of = col2.number_input('Best of', 1, value=1)
 pyramid_depth = col3.number_input('Pyramid Depth', 0, value=3)
 
@@ -154,16 +154,43 @@ else:
         | Visited states      | `{len(solver.visited)}`          |
         | States in queue     | `{solver.queue.qsize()}`         |
         | Solution Coherence  | `{solution.state.coherence:.2f}` |
-        | Search time         | `{end - start :.2f}ms`           |
-        | Evaluated Solutions | `{len(solutions)}` |
+        | Search time         | `{end - start :.2f}s`            |
+        | Evaluated Solutions | `{len(solutions)}`               |
         """
 
     with st.expander('Solution Sequence'):
-        step = st.slider('Step', 0, len(solution.state.history), 0) - 1
+        st.markdown(' → '.join(map(lambda x: f'`{x[0]} = {x[1]}`', solution.state.history)))
+
+        total_steps = len(solution.state.history)
+        col1, _ = st.columns([1, 3])
+        step = col1.number_input(f'Step (0-{total_steps})', 0, total_steps, 0) - 1
         if step >= 0:
             sequence: list[State] = list(solution.state.sequence)
             step_image = Grid.merge(sequence[step].to_cells(list(cells_full.flat), solution.state))
             st.image(step_image, f'Solution at step {step}.', channels='bgr')
+    
+
+with st.expander('Solver Queue'):
+    limit = st.number_input('Preview Limit', 0, value=500)
+    queue: list[tuple[tuple, State]] = []
+
+    while not solver.queue.empty() and len(queue) < limit:
+        queue.append(solver.queue.get())
+
+    queue_df = pd.DataFrame(
+        map(lambda i: (*i[0], i[1]), queue),
+    )
+
+    states = queue_df[len(queue_df.columns)-1]
+    del queue_df[len(queue_df.columns)-1]
+
+    queue_df['last_cell'] = states.apply(lambda s: (s.history[-1][1],))
+    queue_df['last_coord'] = states.apply(lambda s: s.history[-1][0])
+    queue_df['actions_len'] = states.apply(lambda s: len(list(s.actions)))
+    queue_df['neighbors'] = states.apply(lambda s: len(s.free_neighbors))
+    queue_df['hash'] = states.apply(lambda s: (hash(s),))
+    
+    st.write(queue_df)
 
 
 with st.expander('Coherence Matrices'):

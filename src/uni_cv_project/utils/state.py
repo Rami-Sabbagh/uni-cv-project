@@ -137,9 +137,11 @@ class State:
     def toarray(self) -> NDArray:
         result = np.full(self.shape, -1, dtype=np.int32)
 
-        for i, row in enumerate(self.cells.values()):
-            for j, cell_id in enumerate(row.values()):
-                result[i, j] = cell_id
+        for row in range(self.rows):
+            for column in range(self.columns):
+                result[row, column] = self.get_cell_id(
+                    (self.min_row + row, self.min_column + column),
+                )
 
         return result
     

@@ -57,14 +57,30 @@ class ISAPuzzleSolver(Iterator[Solution]):
             
             for action in state.actions:
                 child = state.apply(*action)
-                if child in self.visited: continue
-                if len(self.visited) >= self.states_limit: break
 
-                self.queue.put((self.heuristic(child), child), block=False)
-                self.visited.add(child)
+                if child not in self.visited:
+                    self.queue.put((self.heuristic(child), child), block=False)
+                    self.visited.add(child)
+
+                if len(self.visited) >= self.states_limit: break
+            
+            if len(self.visited) >= self.states_limit: break
     
 
     @staticmethod
     def coherence_heuristic(state: State) -> tuple:
-        return (len(state.available_cells), state.coherence)
+        if state.is_empty(): return (0, )
+
+        remaining_cells_count = len(state.available_cells)
+        accumulated_coherence = state.coherence
+
+        last_action = state.history[-1]
+        piece_coherence, piece_neighbors = state.get_cell_coherence(*last_action)
+
+        return (
+            remaining_cells_count,
+            -piece_neighbors,
+            piece_coherence,
+            accumulated_coherence,
+        )
     
