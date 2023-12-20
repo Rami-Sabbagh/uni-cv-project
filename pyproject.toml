@@ -15,6 +15,7 @@ dependencies = [
     "streamlit>=1.29.0",
     "pandas>=2.1.4",
     "jupyterlab>=4.0.9",
+    "altair>=5.2.0",
 ]
 requires-python = ">=3.11"
 readme = "README.md"

@@ -3,11 +3,13 @@ import os
 import cv2 as cv
 import numpy as np
 import pandas as pd
+import altair as alt
 import streamlit as st
 
 from time import perf_counter
 from numpy.random import default_rng
 
+from utils.cell import Direction, directions
 from utils.grid import Grid, GridIdentifier
 from utils.image import Image
 from utils.puzzle import Puzzle
@@ -94,7 +96,6 @@ states_limit = col1.number_input('States Limit', 500, value=10_000)
 best_of = col2.number_input('Best of', 1, value=1)
 pyramid_depth = col3.number_input('Pyramid Depth', 0, value=3)
 
-
 with st.status('Solving Puzzle...'):
     'Splitting Image...'
     cells_full = Grid.split(image, rows, columns)[0]
@@ -130,6 +131,14 @@ with st.status('Solving Puzzle...'):
 
 st.image(image_solved, f'Generated Solution.', channels='BGR')
 
+st.download_button(
+    label='💾 Save Solution',
+    data=Image.encode(image_solved),
+    file_name=f'{os.path.splitext(image_name)[0]}_solved.jpg',
+    mime='image/jpg',
+)
+
+
 with st.expander('Statistics'):
     f"""
     |              Metric | Value                            |
@@ -141,9 +150,46 @@ with st.expander('Statistics'):
     | Evaluated Solutions | `{len(solutions)}` |
     """
 
-st.download_button(
-    label='💾 Save Solution',
-    data=Image.encode(image_solved),
-    file_name=f'{os.path.splitext(image_name)[0]}_solved.jpg',
-    mime='image/jpg',
-)
+with st.expander('Coherence Matrices'):
+
+    normalize = st.toggle('Normalize along base cell axis.', True)
+    
+    def coherence_dataframe(direction: Direction) -> pd.DataFrame:
+        matrix = puzzle.coherence_matrices[:, :, direction.value[0]]
+        x, y = np.meshgrid(range(matrix.shape[0]), range(matrix.shape[1]))
+
+        if normalize:
+            min_value = np.min(matrix, axis=0)
+            max_value = np.max(matrix, axis=0)
+
+            matrix = (matrix - min_value) / (max_value - min_value)
+
+        return pd.DataFrame({
+            'base': x.ravel(),
+            'neighbor': y.ravel(),
+            'coherence': matrix.ravel(),
+        })
+
+
+    def coherence_chart(direction: Direction) -> alt.Chart:
+        df = coherence_dataframe(direction)
+
+        heatmap = alt.Chart(df).mark_rect().encode(
+            alt.X('base:O').title('Base Cell'),
+            alt.Y('neighbor:O').title('Neighbor Cell'),
+            alt.Color('coherence:Q').sort('descending'),
+        )
+
+        labels = alt.Chart(df).mark_text().encode(
+            alt.X('base:O').title('Base Cell'),
+            alt.Y('neighbor:O').title('Neighbor Cell'), 
+            alt.Text('coherence:Q', format='.2f').title('Coherence'),
+        )
+
+        return (heatmap + labels).properties(
+            title=f'Coherence Matrix with Direction {direction.name.title()}',
+            width=600, height=550,
+        )
+
+    for direction in directions:
+        st.write(coherence_chart(direction))
