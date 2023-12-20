@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.cell import Direction, Cell, directions, directions_opposites
+from utils.cell import Direction, Cell, directions
 
 
 from typing import *

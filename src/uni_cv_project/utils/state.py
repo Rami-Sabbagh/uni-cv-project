@@ -34,6 +34,8 @@ class State:
         self.available_cells: set[int]
         self.free_neighbors: set[tuple[int, int]]
 
+        self.history: list[tuple[tuple[int, int], int]]
+
         self.coherence: float
         self.__hash: int
 
@@ -43,6 +45,15 @@ class State:
         for neighbor in self.free_neighbors:
             for cell_id in self.available_cells:
                 yield neighbor, cell_id
+
+
+    @property
+    def sequence(self) -> Sequence[Self]:
+        state = State.create_initial_state(self.puzzle)
+        
+        for action in self.history:
+            state = state.apply(*action)
+            yield state
 
 
     @classmethod
@@ -59,6 +70,8 @@ class State:
         result.cells = dict()
         result.available_cells = set(range(len(puzzle.cells)))
         result.free_neighbors = set([ (0, 0) ])
+
+        result.history = []
 
         result.coherence = .0
         result.__update_hash()
@@ -113,6 +126,8 @@ class State:
         result.available_cells = self.available_cells.copy()
         result.free_neighbors = self.free_neighbors.copy()
 
+        result.history = self.history.copy()
+
         result.coherence = self.coherence
         result.__hash = self.__hash
 
@@ -129,17 +144,23 @@ class State:
         return result
     
 
-    def to_cells(self, cells: list[NDArray] | None = None) -> NDArray:
+    def to_cells(self, cells: list[NDArray] | None = None, ref: Self | None = None) -> NDArray:
         if cells is None: cells = self.puzzle.cells
-        result = np.empty(self.shape, dtype=object)
+        if ref is None: ref = self
+
+        result = np.empty(ref.shape, dtype=object)
         null_cell = np.zeros_like(cells[0])
 
-        for i, row in enumerate(self.cells.values()):
-            for j, cell_id in enumerate(row.values()):
-                result[i, j] = cells[cell_id] if cell_id >= 0 and cell_id < len(cells) else null_cell
+        for i in range(ref.rows):
+            for j in range(ref.columns):
+                result[i, j] = null_cell
+        
+        for i, row in self.cells.items():
+            for j, cell_id in row.items():
+                result[i - ref.min_row, j - ref.min_column] = cells[cell_id]
         
         return result
-
+    
 
     def plot(
             self, *,
@@ -187,6 +208,8 @@ class State:
             result.__check_neighbors()
         
         result.__add_free_neighbors(coords)
+
+        result.history.append((coords, cell_id))
 
         result.coherence = self.coherence + self.get_cell_coherence(coords, cell_id)[0]
         result.__update_hash()

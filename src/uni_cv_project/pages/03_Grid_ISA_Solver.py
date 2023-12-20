@@ -13,7 +13,8 @@ from utils.cell import Direction, directions
 from utils.grid import Grid, GridIdentifier
 from utils.image import Image
 from utils.puzzle import Puzzle
-from utils.isa_solver import ISAPuzzleSolver
+from utils.state import State
+from utils.isa_solver import ISAPuzzleSolver, Solution
 
 from typing import *
 from numpy.typing import NDArray
@@ -39,7 +40,7 @@ To get started please select the target image you wish.
 @st.cache_resource(show_spinner=False)
 def load_image(file) -> tuple[str, NDArray]:
     if file is None:
-        return 'uni-1_02x03_shuffled_948135.jpg', cv.imread('images/uni-1_02x03_shuffled_948135.jpg')
+        return 'uni-1.jpg', cv.imread('images/uni-1.jpg')
     else:
         return file.name, Image.decode(file.getvalue())
 
@@ -52,7 +53,7 @@ st.image(image, f'Target Image: "{image_name}"', channels='BGR')
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
 
 col1, col2 = st.columns([1, 3])
-if col2.toggle('Automatic Detection', True):
+if col2.toggle('Automatic Detection', False):
     std_threshold = col1.number_input('$\sigma$ Threshold', 1, value=4)
     widest_gap = col1.number_input('Widest Gap', 10, value=50)
 
@@ -77,7 +78,7 @@ col2.write(pd.DataFrame({
     },
 }))
 
-shuffle_enabled = st.toggle('Shuffle Cells')
+shuffle_enabled = st.toggle('Shuffle Cells', True)
 
 if shuffle_enabled:
     col1, col2 = st.columns([3, 1])
@@ -96,7 +97,9 @@ states_limit = col1.number_input('States Limit', 500, value=10_000)
 best_of = col2.number_input('Best of', 1, value=1)
 pyramid_depth = col3.number_input('Pyramid Depth', 0, value=3)
 
-with st.status('Solving Puzzle...'):
+status = st.status('Solving Puzzle...')
+
+with status:
     'Splitting Image...'
     cells_full = Grid.split(image, rows, columns)[0]
 
@@ -121,34 +124,47 @@ with st.status('Solving Puzzle...'):
     solver = ISAPuzzleSolver(puzzle, states_limit=states_limit)
     solutions = list(zip(solver, range(best_of)))
     solutions.sort(key = lambda s: s[0].state.coherence)
-    solution = solutions[0][0]
+    solution: Solution = solutions[0][0] if len(solutions) > 0 else None
     end = perf_counter()
 
-    'Rendering Solution...'
-    cells_solved = solution.state.to_cells(list(cells_full.flat))
-    image_solved = Grid.merge(cells_solved)
+    if solution is not None:
+        'Rendering Solution...'
+        cells_solved = solution.state.to_cells(list(cells_full.flat))
+        image_solved = Grid.merge(cells_solved)
 
 
-st.image(image_solved, f'Generated Solution.', channels='BGR')
+if solution is None:
+    status.update(state='error')
+    st.error('Failed to find solution.')
+else:
 
-st.download_button(
-    label='💾 Save Solution',
-    data=Image.encode(image_solved),
-    file_name=f'{os.path.splitext(image_name)[0]}_solved.jpg',
-    mime='image/jpg',
-)
+    st.image(image_solved, f'Generated Solution.', channels='BGR')
 
+    st.download_button(
+        label='💾 Save Solution',
+        data=Image.encode(image_solved),
+        file_name=f'{os.path.splitext(image_name)[0]}_solved.jpg',
+        mime='image/jpg',
+    )
 
-with st.expander('Statistics'):
-    f"""
-    |              Metric | Value                            |
-    |--------------------:|----------------------------------|
-    | Visited states      | `{len(solver.visited)}`          |
-    | States in queue     | `{solver.queue.qsize()}`         |
-    | Solution Coherence  | `{solution.state.coherence:.2f}` |
-    | Search time         | `{end - start :.2f}ms`           |
-    | Evaluated Solutions | `{len(solutions)}` |
-    """
+    with st.expander('Statistics'):
+        f"""
+        |              Metric | Value                            |
+        |--------------------:|----------------------------------|
+        | Visited states      | `{len(solver.visited)}`          |
+        | States in queue     | `{solver.queue.qsize()}`         |
+        | Solution Coherence  | `{solution.state.coherence:.2f}` |
+        | Search time         | `{end - start :.2f}ms`           |
+        | Evaluated Solutions | `{len(solutions)}` |
+        """
+
+    with st.expander('Solution Sequence'):
+        step = st.slider('Step', 0, len(solution.state.history), 0) - 1
+        if step >= 0:
+            sequence: list[State] = list(solution.state.sequence)
+            step_image = Grid.merge(sequence[step].to_cells(list(cells_full.flat), solution.state))
+            st.image(step_image, f'Solution at step {step}.', channels='bgr')
+
 
 with st.expander('Coherence Matrices'):
 
