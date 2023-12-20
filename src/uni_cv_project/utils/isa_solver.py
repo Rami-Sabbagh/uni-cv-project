@@ -22,10 +22,12 @@ class ISAPuzzleSolver(Iterator[Solution]):
         self, puzzle: Puzzle, *,
         states_limit: int = 10_000,
         heuristic: Callable[[State], tuple] | None = None,
+        depth_only: bool = False,
     ) -> None:
         self.puzzle: Puzzle = puzzle
-        self.heuristic: Callable[[State], tuple]  = heuristic or self.coherence_heuristic
         self.states_limit: int = states_limit
+        self.heuristic: Callable[[State], tuple]  = heuristic or self.coherence_heuristic
+        self.depth_only = depth_only
 
         self.queue: Queue[tuple[tuple, State]] = PriorityQueue()
         self.visited: set[State] = set()
@@ -51,6 +53,11 @@ class ISAPuzzleSolver(Iterator[Solution]):
 
         while not self.queue.empty():
             score, state = self.queue.get()
+
+            if self.depth_only:
+                self.visited.clear()
+                while not self.queue.empty():
+                    self.queue.get()
 
             if state.is_complete():
                 yield Solution(state, score, len(self.visited), self.queue.qsize())

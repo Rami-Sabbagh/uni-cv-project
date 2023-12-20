@@ -44,7 +44,7 @@ def load_image(file) -> tuple[str, NDArray]:
     else:
         return file.name, Image.decode(file.getvalue())
 
-image_name, image = load_image(st.file_uploader('Target Image', ['png', 'jpg', 'gif', 'bmp']))
+image_name, image = load_image(st.file_uploader('Target Image', ['png', 'jpg', 'gif', 'bmp', 'webp']))
 st.image(image, f'Target Image: "{image_name}"', channels='BGR')
 
 
@@ -96,6 +96,7 @@ col1, col2, col3, _ = st.columns([1, 1, 1, 2])
 states_limit = col1.number_input('States Limit', 1, value=10_000)
 best_of = col2.number_input('Best of', 1, value=1)
 pyramid_depth = col3.number_input('Pyramid Depth', 0, value=3)
+depth_only = st.checkbox('Depth Only Mode', True)
 
 status = st.status('Solving Puzzle...')
 
@@ -121,10 +122,16 @@ with status:
 
     'Searching for Solution...'
     start = perf_counter()
-    solver = ISAPuzzleSolver(puzzle, states_limit=states_limit)
+
+    solver = ISAPuzzleSolver(
+        puzzle, states_limit=states_limit,
+        depth_only=depth_only
+    )
+
     solutions = list(zip(solver, range(best_of)))
     solutions.sort(key = lambda s: s[0].state.coherence)
     solution: Solution = solutions[0][0] if len(solutions) > 0 else None
+
     end = perf_counter()
 
     if solution is not None:
@@ -170,27 +177,28 @@ else:
             st.image(step_image, f'Solution at step {step}.', channels='bgr')
     
 
-with st.expander('Solver Queue'):
-    limit = st.number_input('Preview Limit', 0, value=500)
-    queue: list[tuple[tuple, State]] = []
+if not solver.queue.empty():
+    with st.expander('Solver Queue'):
+        limit = st.number_input('Preview Limit', 0, value=500)
+        queue: list[tuple[tuple, State]] = []
 
-    while not solver.queue.empty() and len(queue) < limit:
-        queue.append(solver.queue.get())
+        while not solver.queue.empty() and len(queue) < limit:
+            queue.append(solver.queue.get())
 
-    queue_df = pd.DataFrame(
-        map(lambda i: (*i[0], i[1]), queue),
-    )
+        queue_df = pd.DataFrame(
+            map(lambda i: (*i[0], i[1]), queue),
+        )
 
-    states = queue_df[len(queue_df.columns)-1]
-    del queue_df[len(queue_df.columns)-1]
+        states = queue_df[len(queue_df.columns)-1]
+        del queue_df[len(queue_df.columns)-1]
 
-    queue_df['last_cell'] = states.apply(lambda s: (s.history[-1][1],))
-    queue_df['last_coord'] = states.apply(lambda s: s.history[-1][0])
-    queue_df['actions_len'] = states.apply(lambda s: len(list(s.actions)))
-    queue_df['neighbors'] = states.apply(lambda s: len(s.free_neighbors))
-    queue_df['hash'] = states.apply(lambda s: (hash(s),))
-    
-    st.write(queue_df)
+        queue_df['last_cell'] = states.apply(lambda s: (s.history[-1][1],))
+        queue_df['last_coord'] = states.apply(lambda s: s.history[-1][0])
+        queue_df['actions_len'] = states.apply(lambda s: len(list(s.actions)))
+        queue_df['neighbors'] = states.apply(lambda s: len(s.free_neighbors))
+        queue_df['hash'] = states.apply(lambda s: (hash(s),))
+        
+        st.write(queue_df)
 
 
 with st.expander('Coherence Matrices'):

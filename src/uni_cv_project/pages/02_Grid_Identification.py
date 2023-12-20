@@ -30,7 +30,7 @@ def load_image(file) -> tuple[str, NDArray]:
     else:
         return file.name, Image.decode(file.getvalue())
 
-image_name, image = load_image(st.file_uploader('Target Image', ['png', 'jpg', 'gif', 'bmp']))
+image_name, image = load_image(st.file_uploader('Target Image', ['png', 'jpg', 'gif', 'bmp', 'webp']))
 st.image(image, f'Target Image: "{image_name}"', channels='BGR')
 
 
