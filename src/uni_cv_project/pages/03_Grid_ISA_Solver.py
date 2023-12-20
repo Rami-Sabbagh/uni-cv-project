@@ -89,8 +89,10 @@ if shuffle_enabled:
 '## Puzzle Solution'
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
 
-col1, _ = st.columns([1, 3])
+col1, col2, col3, _ = st.columns([1, 1, 1, 2])
 states_limit = col1.number_input('States Limit', 500, value=10_000)
+best_of = col2.number_input('Best of', 1, value=1)
+pyramid_depth = col3.number_input('Pyramid Depth', 0, value=3)
 
 
 with st.status('Solving Puzzle...'):
@@ -102,9 +104,13 @@ with st.status('Solving Puzzle...'):
         cells_full = Grid.shuffle(cells_full, seed)
 
     'Scaling Down...'
-    cells = Grid.pyramid_down(cells_full, 3)
+    cells = Grid.pyramid_down(cells_full, pyramid_depth)
 
-    st.image(Grid.merge(cells), 'Cells after shuffling and scale down.')
+    st.image(
+        Grid.merge(cells),
+        'Cells after shuffling (if enabled) and scale down.',
+        channels='bgr',
+    )
 
     'Initializing Puzzle...'
     puzzle = Puzzle(cells)
@@ -112,7 +118,9 @@ with st.status('Solving Puzzle...'):
     'Searching for Solution...'
     start = perf_counter()
     solver = ISAPuzzleSolver(puzzle, states_limit=states_limit)
-    solution = next(solver)
+    solutions = list(zip(solver, range(best_of)))
+    solutions.sort(key = lambda s: s[0].state.coherence)
+    solution = solutions[0][0]
     end = perf_counter()
 
     'Rendering Solution...'
@@ -120,16 +128,17 @@ with st.status('Solving Puzzle...'):
     image_solved = Grid.merge(cells_solved)
 
 
-st.image(image_solved, f'Generated Solution', channels='BGR')
+st.image(image_solved, f'Generated Solution.', channels='BGR')
 
 with st.expander('Statistics'):
     f"""
-    |             Metric | Value                            |
-    |-------------------:|----------------------------------|
-    | Visited states     | `{len(solver.visited)}`          |
-    | States in queue    | `{solver.queue.qsize()}`         |
-    | Solution Coherence | `{solution.state.coherence:.2f}` |
-    | Search time        | `{end - start :.2f}ms`           |
+    |              Metric | Value                            |
+    |--------------------:|----------------------------------|
+    | Visited states      | `{len(solver.visited)}`          |
+    | States in queue     | `{solver.queue.qsize()}`         |
+    | Solution Coherence  | `{solution.state.coherence:.2f}` |
+    | Search time         | `{end - start :.2f}ms`           |
+    | Evaluated Solutions | `{len(solutions)}` |
     """
 
 st.download_button(
