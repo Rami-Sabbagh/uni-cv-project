@@ -123,5 +123,57 @@ with st.spinner('Matching...'):
     solution_cells = solution_cells.reshape(cells.shape)
     solution_image = Grid.merge(solution_cells)
 
-# st.write(np.array(solution).reshape(cells.shape))
 st.image(solution_image, 'Matched Solution', channels='BGR')
+
+
+def render_solution_map():
+    cell_rows, cell_columns = cells[0, 0].shape[:2]
+
+    result = np.concatenate([
+        Grid.merge(cells),
+        cv.resize(hint, (cell_columns * columns, cell_rows * rows), interpolation=cv.INTER_LINEAR),
+    ], axis=1)
+
+
+    hint_coords: list[tuple[int, int]] = []
+    for row in range(rows):
+        for column in range(columns):
+            hint_coords.append((
+                int((column + .5) * cell_columns) + image.shape[1],
+                int((row + .5) * cell_rows),
+            ))
+    
+    id_grid = np.array(reverse_solution).reshape(cells.shape)
+    
+    palette = [
+        [255, 0  , 0  ],
+        [0  , 255, 0  ],
+        [0  , 0  , 255],
+        [255, 255, 0  ],
+        [255, 0  , 255],
+        [0  , 255, 255],
+    ]
+
+    arrows = np.zeros_like(result)
+    
+    for row in range(rows):
+        for column in range(columns):
+            point_from = (
+                int((column + .5) * cell_columns),
+                int((row + .5) * cell_rows),
+            )
+
+            to_cell_id = id_grid[row, column]
+            point_to = hint_coords[to_cell_id]
+
+            arrows = cv.arrowedLine(
+                arrows, point_from, point_to,
+                palette[(row + column) % len(palette)],
+                10, tipLength=.01,
+            )
+
+    opacity = .8
+    return cv.addWeighted(result, 1. - opacity, arrows, opacity, .0)
+
+
+st.image(render_solution_map(), 'Solution Map', channels='bgr')
