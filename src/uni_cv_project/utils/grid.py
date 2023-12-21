@@ -67,6 +67,15 @@ class Grid:
 
         return result
 
+    @staticmethod
+    def cvtColor(cells: NDArray, code: int) -> NDArray:
+        result = np.empty_like(cells)
+        for i in range(cells.shape[0]):
+            for j in range(cells.shape[1]):
+                result[i, j] = cv.cvtColor(cells[i, j], code)
+        
+        return result
+
 
 
 class GridIdentifier:

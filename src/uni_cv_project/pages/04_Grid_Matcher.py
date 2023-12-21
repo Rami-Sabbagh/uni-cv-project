@@ -11,6 +11,7 @@ from numpy.random import default_rng
 
 from utils.grid import Grid, GridIdentifier
 from utils.image import Image
+from utils.matcher import PuzzleSolverRectHint
 
 from typing import *
 from numpy.typing import NDArray
@@ -91,6 +92,11 @@ if shuffle_enabled:
 with st.spinner('Preparing Grid...'):
     cells = Grid.split(image, rows, columns)[0]
     if shuffle_enabled: cells = Grid.shuffle(cells, seed)
+    cells_gray = Grid.cvtColor(cells, cv.COLOR_BGR2GRAY)
+
+    hint_cells = Grid.split(hint, rows, columns)[0]
+    hint_cells_gray = Grid.cvtColor(hint_cells, cv.COLOR_BGR2GRAY)
+    
 
 col1, col2 = st.columns(2)
 
@@ -102,10 +108,20 @@ col2.image(hint, f'Hint Image: "{hint_name}"', channels='BGR')
 '## Matching Results'
 #==---==---==---==---==---==---==---==---==---==---==---==---==---==---==---==#
 
-def image_distance(a: NDArray, b: NDArray) -> float:
-    return np.average(np.sum(np.square(a - b), axis=-1))
+matcher = PuzzleSolverRectHint()
 
-# with st.spinner('Matching...'):
+with st.spinner('Matching...'):
+    matcher.fit(hint_cells_gray)
+    solution = matcher.solve(cells_gray)
 
+    cells_list = list(cells.flat)
+    solution_cells = np.empty(len(solution), dtype=object)
 
+    for i, cell_id in enumerate(solution):
+        solution_cells[i] = cells_list[cell_id]
 
+    solution_cells = solution_cells.reshape(cells.shape)
+    solution_image = Grid.merge(solution_cells)
+
+# st.write(np.array(solution).reshape(cells.shape))
+st.image(solution_image, 'Matched Solution', channels='BGR')
