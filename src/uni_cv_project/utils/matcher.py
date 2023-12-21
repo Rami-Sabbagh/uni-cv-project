@@ -100,7 +100,7 @@ class PuzzleSolverRectHint:
 
     def __init__(self,) -> None:
         pass
-    
+
 
     def fit(self, cells: NDArray) -> None:
         self._pieces_shape = cells.shape
@@ -112,15 +112,18 @@ class PuzzleSolverRectHint:
         self._matcher = PieceMatcher().fit(features.features)
 
 
-    def solve(self, cells: NDArray):
-        gray_pieces = list(cells.flat)
+    def solve(self, cells: NDArray) -> tuple[list[int], list[int]]:
+        pieces = list(cells.flat)
 
-        features = (PieceFeatureExtractorSIFT().fit(gray_pieces) +
-                    PieceFeatureExtractor2DPooling().fit(gray_pieces))
+        features = (PieceFeatureExtractorSIFT().fit(pieces) +
+                    PieceFeatureExtractor2DPooling().fit(pieces))
         
-        res = list(range(len(gray_pieces)))
+        forward_solution = list(range(len(pieces)))
+        reverse_solution = list(range(len(pieces)))
+
         for i, f in enumerate(features.features):
             j = self._matcher.get(f)[1]
-            res[j] = i
+            forward_solution[j] = i
+            reverse_solution[i] = j
 
-        return res
+        return forward_solution, reverse_solution

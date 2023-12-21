@@ -112,12 +112,12 @@ matcher = PuzzleSolverRectHint()
 
 with st.spinner('Matching...'):
     matcher.fit(hint_cells_gray)
-    solution = matcher.solve(cells_gray)
+    forward_solution, reverse_solution = matcher.solve(cells_gray)
 
     cells_list = list(cells.flat)
-    solution_cells = np.empty(len(solution), dtype=object)
+    solution_cells = np.empty(len(forward_solution), dtype=object)
 
-    for i, cell_id in enumerate(solution):
+    for i, cell_id in enumerate(forward_solution):
         solution_cells[i] = cells_list[cell_id]
 
     solution_cells = solution_cells.reshape(cells.shape)
